@@ -1,0 +1,38 @@
+name: PagerDuty Incident Creation
+
+on:
+  pull_request:
+    types: [opened]
+  push:
+
+jobs:
+  pagerduty:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create incident on PR open or new commit to PR
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && contains(github.ref, 'refs/pull/'))
+        run: |
+          response=$(curl -X POST --header 'Content-Type: application/json' -d '{
+            "service_key": "${{ secrets.PAGERDUTY_API_KEY }}",
+            "event_type": "trigger",
+            "description": "Incident triggered by PR or commit to PR",
+            "client": "GitHub Actions",
+            "client_url": "${{ github.event.pull_request.html_url || github.event.compare }}"
+          }' https://events.pagerduty.com/generic/2010-04-15/create_event.json)
+          incident_key=$(echo $response | jq -r '.dedup_key')
+          echo "::set-output name=incident_key::$incident_key"
+          
+      - name: Add label
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const issueNumber = context.issue.number;
+            const incidentKey = "${{ steps.pagerduty.outputs.incident_key }}";
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: [incidentkey]
+            });
+
