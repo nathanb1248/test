@@ -1,4 +1,4 @@
-name: PagerDuty Incident Management
+name: PagerDuty Incident Creation
 
 on:
   pull_request:
