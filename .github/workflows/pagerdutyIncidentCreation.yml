@@ -22,7 +22,10 @@ jobs:
             "client": "GitHub Actions",
             "client_url": "${{ github.event.pull_request.html_url || github.event.compare }}"
           }' https://events.pagerduty.com/generic/2010-04-15/create_event.json)
-          echo "incident_key=$(echo $response | jq -r '.dedup_key')" >> "$GITHUB_OUTPUT"
+          incident_key=$(echo $response | jq -r '.dedup_key')
+          echo $incident_key
+          echo "$incident_key"
+          echo "$incident_key" >> "$GITHUB_OUTPUT"
           
       - name: Add label
         uses: actions/github-script@v5
