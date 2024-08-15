@@ -23,8 +23,8 @@ jobs:
           echo "incident_key=$(echo $response | jq -r '.incident_key')" >> $GITHUB_ENV
           echo ${{ env.incident_key }}
           echo "${{ env.incident_key }}"
-          echo incident_key
-          echo "incident_key"
+          echo $incident_key
+          echo "$incident_key"
 
       - name: Add label to github containing pagerduty incident key
         uses: actions/github-script@v5
