@@ -24,17 +24,13 @@ jobs:
           }' https://events.pagerduty.com/generic/2010-04-15/create_event.json)
           echo "incident_key=$(echo $response | jq -r '.incident_key')" >> "$GITHUB_OUTPUT"
 
-  label:
-    runs-on: ubunutu-latest
-    needs: pagerduty
-    steps:
       - name: Add label to github containing pagerduty incident key
         uses: actions/github-script@v5
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             const issueNumber = context.issue.number;
-            const incidentKey = "${{ steps.pagerduty.outputs.incident_key }}";
+            const incidentKey = "${{ steps.generateEvent.outputs.incident_key }}";
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
