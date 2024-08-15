@@ -29,6 +29,7 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
+            echo $GITHUB_OUTPUT
             const issueNumber = context.issue.number;
             const incidentKey = "${{ steps.generateEvent.outputs.incident_key }}";
             await github.rest.issues.addLabels({
