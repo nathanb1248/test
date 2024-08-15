@@ -8,8 +8,6 @@ on:
 jobs:
   pagerduty:
     runs-on: ubuntu-latest
-    outputs: 
-      output1: ${{ steps.generateEvent.outputs.incident_key }}
     steps:
       - name: Create incident on PR open or new commit to PR
         id: generateEvent
@@ -22,16 +20,15 @@ jobs:
             "client": "GitHub Actions",
             "client_url": "${{ github.event.pull_request.html_url || github.event.compare }}"
           }' https://events.pagerduty.com/generic/2010-04-15/create_event.json)
-          echo "incident_key=$(echo $response | jq -r '.incident_key')" >> "$GITHUB_OUTPUT"
+          echo "incident_key=$(echo $response | jq -r '.incident_key')" >> $GITHUB_ENV
 
       - name: Add label to github containing pagerduty incident key
         uses: actions/github-script@v5
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            echo $GITHUB_OUTPUT
             const issueNumber = context.issue.number;
-            const incidentKey = "${{ steps.generateEvent.outputs.incident_key }}";
+            const incidentKey = "${{ env.incident_key }}";
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,
