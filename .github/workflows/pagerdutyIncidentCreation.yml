@@ -33,6 +33,6 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issueNumber,
-              labels: [$incidentkey]
+              labels: [${incidentkey}]
             });
 
