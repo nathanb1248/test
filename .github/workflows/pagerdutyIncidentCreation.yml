@@ -18,7 +18,8 @@ jobs:
             "event_type": "trigger",
             "description": "Incident triggered by PR or commit to PR",
             "client": "GitHub Actions",
-            "client_url": "${{ github.event.pull_request.html_url || github.event.compare }}"
+            "client_url": "${{ github.event.pull_request.html_url || github.event.compare }}",
+            "incident_key": "PR-${{ github.event.pull_request.number }} "
           }' https://events.pagerduty.com/generic/2010-04-15/create_event.json)
           echo "incident_key=$(echo $response | jq -r '.incident_key')" >> $GITHUB_ENV
 
