@@ -16,7 +16,7 @@ jobs:
           response=$(curl -X POST --header 'Content-Type: application/json' -d '{
             "service_key": "${{ secrets.PAGERDUTY_API_KEY }}",
             "event_type": "trigger",
-            "description": "Incident triggered by PR or commit to PR",
+            "description": "Incident triggered by PR",
             "client": "GitHub Actions",
             "client_url": "${{ github.event.pull_request.html_url || github.event.compare }}",
             "incident_key": "PR-${{ github.event.pull_request.number }} "
@@ -38,18 +38,3 @@ jobs:
             "client_url": "${{ github.event.pull_request.html_url || github.event.compare }}",
             "incident_key": "PR-${{ github.event.pull_request.number }} "
           }' https://events.pagerduty.com/generic/2010-04-15/create_event.json
-
-      # - name: Add label to github containing pagerduty incident key
-      #   uses: actions/github-script@v5
-      #   with:
-      #     github-token: ${{secrets.GITHUB_TOKEN}}
-      #     script: |
-      #       const issueNumber = context.issue.number;
-      #       const incidentKey = "${{ env.incident_key }}";
-      #       await github.rest.issues.addLabels({
-      #         owner: context.repo.owner,
-      #         repo: context.repo.repo,
-      #         issue_number: issueNumber,
-      #         labels: [incidentKey]
-      #       });
-
