@@ -2,16 +2,16 @@ name: PagerDuty Incident Creation
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, closed]
   push:
 
 jobs:
-  pagerduty:
+  pagerduty_open_incident:
     runs-on: ubuntu-latest
     steps:
-      - name: Create incident on PR open or new commit to PR
+      - name: Create incident on PR open
         id: generateEvent
-        if: github.event_name == 'pull_request' || (github.event_name == 'push' && contains(github.ref, 'refs/pull/'))
+        if: github.event.action == 'opened'
         run: |
           response=$(curl -X POST --header 'Content-Type: application/json' -d '{
             "service_key": "${{ secrets.PAGERDUTY_API_KEY }}",
@@ -23,17 +23,33 @@ jobs:
           }' https://events.pagerduty.com/generic/2010-04-15/create_event.json)
           echo "incident_key=$(echo $response | jq -r '.incident_key')" >> $GITHUB_ENV
 
-      - name: Add label to github containing pagerduty incident key
-        uses: actions/github-script@v5
-        with:
-          github-token: ${{secrets.GITHUB_TOKEN}}
-          script: |
-            const issueNumber = context.issue.number;
-            const incidentKey = "${{ env.incident_key }}";
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issueNumber,
-              labels: [incidentKey]
-            });
+  pagerduty_resolve_incident:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve incident on PR close
+        id: resolveEvent
+        if: github.event.action == 'closed'
+        run: |
+          curl -X POST --header 'Content-Type: application/json' -d '{
+            "service_key": "${{ secrets.PAGERDUTY_API_KEY }}",
+            "event_type": "resolve",
+            "description": "Incident resolved by PR close",
+            "client": "GitHub Actions",
+            "client_url": "${{ github.event.pull_request.html_url || github.event.compare }}",
+            "incident_key": "PR-${{ github.event.pull_request.number }} "
+          }' https://events.pagerduty.com/generic/2010-04-15/create_event.json
+
+      # - name: Add label to github containing pagerduty incident key
+      #   uses: actions/github-script@v5
+      #   with:
+      #     github-token: ${{secrets.GITHUB_TOKEN}}
+      #     script: |
+      #       const issueNumber = context.issue.number;
+      #       const incidentKey = "${{ env.incident_key }}";
+      #       await github.rest.issues.addLabels({
+      #         owner: context.repo.owner,
+      #         repo: context.repo.repo,
+      #         issue_number: issueNumber,
+      #         labels: [incidentKey]
+      #       });
 
